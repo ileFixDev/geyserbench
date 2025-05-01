@@ -70,6 +70,7 @@ impl Comparator {
     pub fn get_valid_count(&self) -> usize {
         self.data.len()
     }
+}
 
 lazy_static::lazy_static! {
     static ref CONFIG: ConfigToml = toml::from_str(&fs::read_to_string("bencher_config.toml").expect("Failed to read config.toml")).expect("Failed to deserialize bencher_config.toml");
