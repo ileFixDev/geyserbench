@@ -28,24 +28,33 @@ When first run, GeyserBench will create a default `config.toml` file. Edit this 
 
 ```toml
 [config]
-transactions = 100
-account = "7dGrdJRYtsNR8UYxZ3TnifXGjGc9eRYLq9sELwYpuuUu"
+transactions = 1000
+account = "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA"
 commitment = "processed"
 
 [[endpoint]]
-name = "endpoint 1"
+name = "Yellowstone GRPC"
 url = "https://api.mainnet-beta.solana.com:10000"
 x_token = "YOUR_TOKEN_HERE"
+kind = "yellowstone"
 
 [[endpoint]]
-name = "endpoint 2"
-url = "http://frankfurt.omeganetworks.io:10000"
+name = "Corvus ARPC"
+url = "http://0.0.0.0:20202"
 x_token = ""
+kind = "arpc"
 
 [[endpoint]]
-name = "endpoint 3"
-url = "http://newyork.omeganetworks.io:10000"
+name = "Thor Streamer"
+url = "http://0.0.0.0:50051"
 x_token = "YOUR_TOKEN_HERE"
+kind = "thor"
+
+[[endpoint]]
+name = "Shreder.xyz"
+url = "http://0.0.0.0:10000"
+x_token = "YOUR_TOKEN_HERE"
+kind = "shreder"
 ```
 
 ### Configuration Options
@@ -57,6 +66,7 @@ x_token = "YOUR_TOKEN_HERE"
     - `name`: Name for the endpoint
     - `url`: gRPC endpoint URL
     - `x_token`: Authentication token (if required)
+    - `kind`: Geyser provider type (yellowstone, arpc, thor, shreder, etc.)
 
 ## Usage
 
