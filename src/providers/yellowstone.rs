@@ -69,6 +69,7 @@ async fn process_yellowstone_endpoint(
     let mut client = GeyserGrpcClient::build_from_shared(endpoint.url)?
         .x_token(Some(endpoint.x_token))?
         .tls_config(ClientTlsConfig::new().with_native_roots())?
+        .connect_timeout(std::time::Duration::from_secs(5))
         .connect()
         .await?;
 

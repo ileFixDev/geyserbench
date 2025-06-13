@@ -2,7 +2,6 @@ use std::{ collections::HashMap, error::Error, sync::{ Arc, Mutex } };
 use futures::channel::mpsc::unbounded;
 use futures_util::{ stream::StreamExt, sink::SinkExt };
 use tokio::{ sync::broadcast, task };
-use tokio_stream::Stream;
 
 use crate::{
     config::{ Config, Endpoint },
@@ -16,14 +15,10 @@ pub mod jetstream {
     #![allow(clippy::missing_const_for_fn)]
 
     include!(concat!(env!("OUT_DIR"), "/jetstream.rs"));
-
-    pub const FILE_DESCRIPTOR_SET: &[u8] = tonic::include_file_descriptor_set!("proto_descriptors");
 }
 
 use jetstream::{
-    jetstream_client::JetstreamClient,
-    SubscribeRequest, SubscribeUpdate,
-    SubscribeRequestFilterTransactions,
+    jetstream_client::JetstreamClient
 };
 
 pub struct JetstreamProvider;
@@ -65,7 +60,20 @@ async fn process_jetstream_endpoint(
 
     log::info!("[{}] Connecting to endpoint: {}", endpoint.name, endpoint.url);
 
-    let mut client = JetstreamClient::connect(endpoint.url).await?;
+    // Pin the connection future so we can poll it inside `tokio::select!`
+    let connect_future = JetstreamClient::connect(endpoint.url.clone());
+    tokio::pin!(connect_future);
+
+    let mut client = tokio::select! {
+        res = &mut connect_future => {
+            res?
+        }
+        _ = shutdown_rx.recv() => {
+            log::info!("[{}] Received stop signal while connecting, aborting", endpoint.name);
+            return Ok(());
+        }
+    };
+
     log::info!("[{}] Connected successfully", endpoint.name);
 
     let mut transactions: HashMap<
@@ -78,7 +86,7 @@ async fn process_jetstream_endpoint(
         account_required: vec![config.account.clone()],
     });
 
-    let request = jetstream::SubscribeRequest { 
+    let request = jetstream::SubscribeRequest {
         transactions,
         accounts: HashMap::new(),
         ping: None,

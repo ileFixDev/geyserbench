@@ -64,8 +64,19 @@ async fn process_shredstream_endpoint(
     let mut log_file = open_log_file(&endpoint.name)?;
 
     log::info!("[{}] Connecting to endpoint: {}", endpoint.name, endpoint.url);
+    let connect_future = ShrederServiceClient::connect(endpoint.url.clone());
+    tokio::pin!(connect_future);
 
-    let mut client = ShrederServiceClient::connect(endpoint.url).await?;
+    let mut client = tokio::select! {
+        res = &mut connect_future => {
+            res?
+        }
+        _ = shutdown_rx.recv() => {
+            log::info!("[{}] Received stop signal while connecting, aborting", endpoint.name);
+            return Ok(());
+        }
+    };
+
     log::info!("[{}] Connected successfully", endpoint.name);
 
     let mut transactions: HashMap<

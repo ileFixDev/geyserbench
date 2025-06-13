@@ -9,7 +9,7 @@ use tokio::{sync::broadcast, task};
 use publisher::{
     event_publisher_client::EventPublisherClient,
     Empty, StreamResponse, SubscribeWalletRequest,
-    
+
 };
 use thor_streamer::types::{
     MessageWrapper, SlotStatusEvent, TransactionEvent, TransactionEventWrapper, UpdateAccountEvent,
@@ -30,7 +30,7 @@ use super::GeyserProvider;
 pub mod thor_streamer {
     #![allow(clippy::clone_on_ref_ptr)]
     #![allow(clippy::missing_const_for_fn)]
-    
+
     pub mod types {
         include!(concat!(env!("OUT_DIR"), "/thor_streamer.types.rs"));
     }
@@ -39,9 +39,9 @@ pub mod thor_streamer {
 pub mod publisher {
     #![allow(clippy::clone_on_ref_ptr)]
     #![allow(clippy::missing_const_for_fn)]
-    
+
     include!(concat!(env!("OUT_DIR"), "/publisher.rs"));
-    
+
     pub const FILE_DESCRIPTOR_SET: &[u8] = tonic::include_file_descriptor_set!("proto_descriptors");
 }
 
@@ -98,10 +98,11 @@ async fn process_thor_endpoint(
     log::info!("[{}] Connected successfully", endpoint.name);
 
     let mut request = Request::new(Empty {});
+    request.set_timeout(std::time::Duration::from_millis(1000));
     request
         .metadata_mut()
         .insert("authorization", grpc_token.parse()?);
-    
+
     // Subscribe to transactions stream
     let mut stream: Streaming<StreamResponse> = client
         .subscribe_to_transactions(request)
@@ -126,7 +127,7 @@ async fn process_thor_endpoint(
                                             .iter()
                                             .map(|key| bs58::encode(key).into_string())
                                             .collect();
-                                            
+
                                         if accounts.contains(&config.account) {
                                             let timestamp = get_current_timestamp();
                                             let signature = bs58::encode(&transaction_event.signature).into_string();

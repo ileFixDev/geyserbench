@@ -73,8 +73,20 @@ async fn process_arpc_endpoint(
         endpoint.name,
         endpoint.url
     );
+    
+    let connect_future = ArpcServiceClient::connect(endpoint.url.clone());
+    tokio::pin!(connect_future);
 
-    let mut client = ArpcServiceClient::connect(endpoint.url).await?;
+    let mut client = tokio::select! {
+        res = &mut connect_future => {
+            res?
+        }
+        _ = shutdown_rx.recv() => {
+            log::info!("[{}] Received stop signal while connecting, aborting", endpoint.name);
+            return Ok(());
+        }
+    };
+
     log::info!("[{}] Connected successfully", endpoint.name);
 
     fn reqstream(account: String) -> impl Stream<Item = ArpcSubscribeRequest> {
