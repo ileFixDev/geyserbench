@@ -2,11 +2,8 @@ use std::{
     collections::HashMap,
     fs::OpenOptions,
     io::Write,
-    sync::{Arc, Mutex},
     time::{SystemTime, UNIX_EPOCH},
 };
-
-use crate::config::ConfigToml;
 
 #[derive(Debug, Clone)]
 pub struct TransactionData {

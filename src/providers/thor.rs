@@ -1,28 +1,23 @@
 use std::{
-    collections::HashMap,
     error::Error,
     sync::{Arc, Mutex},
 };
 
-use futures_util::{stream::StreamExt, sink::SinkExt};
-use tokio::{sync::broadcast, task};
+use futures_util::{stream::StreamExt};
+use prost::Message;
 use publisher::{
     event_publisher_client::EventPublisherClient,
-    Empty, StreamResponse, SubscribeWalletRequest,
-
+    Empty, StreamResponse,
 };
 use thor_streamer::types::{
-    MessageWrapper, SlotStatusEvent, TransactionEvent, TransactionEventWrapper, UpdateAccountEvent,
-    message_wrapper::EventMessage,
+    message_wrapper::EventMessage, MessageWrapper,
 };
-use prost::Message;
-use tonic::transport::Uri;
+use tokio::{sync::broadcast, task};
 use tonic::{Request, Streaming};
-use tokio_stream::Stream;
 
 use crate::{
     config::{Config, Endpoint},
-    utils::{Comparator, TransactionData, get_current_timestamp, open_log_file, write_log_entry},
+    utils::{get_current_timestamp, open_log_file, write_log_entry, Comparator, TransactionData},
 };
 
 use super::GeyserProvider;
@@ -41,8 +36,6 @@ pub mod publisher {
     #![allow(clippy::missing_const_for_fn)]
 
     include!(concat!(env!("OUT_DIR"), "/publisher.rs"));
-
-    pub const FILE_DESCRIPTOR_SET: &[u8] = tonic::include_file_descriptor_set!("proto_descriptors");
 }
 
 
@@ -131,7 +124,6 @@ async fn process_thor_endpoint(
                                         if accounts.contains(&config.account) {
                                             let timestamp = get_current_timestamp();
                                             let signature = bs58::encode(&transaction_event.signature).into_string();
-                                            let slot = transaction_event.slot;
 
                                             write_log_entry(&mut log_file, timestamp, &endpoint.name, &signature)?;
 

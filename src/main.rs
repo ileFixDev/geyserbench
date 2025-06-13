@@ -18,7 +18,6 @@ mod utils;
 mod analysis;
 mod providers;
 
-use providers::GeyserProvider;
 use utils::{Comparator, get_current_timestamp};
 
 const CONFIG_PATH: &str = "config.toml";
@@ -33,8 +32,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Loaded configuration");
 
     let (shutdown_tx, _) = broadcast::channel::<()>(1);
-
-    let endpoint_count = config.endpoint.len();
 
     let start_time = get_current_timestamp();
     let comparator = Arc::new(Mutex::new(Comparator::new(config.config.transactions as usize)));

@@ -2,7 +2,6 @@ use std::{ collections::HashMap, error::Error, sync::{ Arc, Mutex } };
 use futures::channel::mpsc::unbounded;
 use futures_util::{ stream::StreamExt, sink::SinkExt };
 use tokio::{ sync::broadcast, task };
-use tokio_stream::Stream;
 
 use crate::{
     config::{ Config, Endpoint },
@@ -16,14 +15,10 @@ pub mod shredstream {
     #![allow(clippy::missing_const_for_fn)]
 
     include!(concat!(env!("OUT_DIR"), "/shredstream.rs"));
-
-    pub const FILE_DESCRIPTOR_SET: &[u8] = tonic::include_file_descriptor_set!("proto_descriptors");
 }
 
 use shredstream::{
     shreder_service_client::ShrederServiceClient,
-    SubscribeTransactionsRequest as ShrederSubscribeTransactionsRequest,
-    SubscribeTransactionsResponse as ShrederSubscribeTransactionsResponse,
 };
 
 pub struct ShrederProvider;
